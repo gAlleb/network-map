@@ -6,6 +6,7 @@ defineOptions({ inheritAttrs: false })
 const props = defineProps<{ id: string, data: { zoneId: number, editable: boolean }, selected?: boolean }>()
 const emit = defineEmits<{ resized: [zoneId: number, rect: { x: number, y: number, width: number, height: number }] }>()
 const { zoneById, devices, health } = useNetwork()
+const { t } = useLang()
 const zone = computed(() => zoneById(props.data.zoneId))
 const color = computed(() => zoneColor(zone.value?.color ?? 'zinc'))
 
@@ -29,7 +30,7 @@ const up = computed(() => pinged.value.filter(d => ['up', 'partial'].includes(he
       </div>
       <span class="title">{{ zone.name }}</span>
       <span v-if="zone.subnet" class="subnet">{{ zone.subnet }}</span>
-      <span v-if="pinged.length" class="count" :title="'отвечают на пинг'">
+      <span v-if="pinged.length" class="count" :title="t('answer ping', 'отвечают на пинг')">
         <span class="inline-block size-1.5 rounded-full" :class="up === pinged.length ? 'bg-green-500' : up ? 'bg-amber-500' : 'bg-red-500'" />
         {{ up }}/{{ pinged.length }}
       </span>

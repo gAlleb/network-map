@@ -9,6 +9,8 @@ type Mode = 'scheme' | 'map' | 'services'
 const net = useNetwork()
 const { zones, devices, links, statuses, selection, loaded } = net
 const colorMode = useColorMode()
+const { lang, setLang, t, L } = useLang()
+useHead(() => ({ title: t('Network map', 'Карта сети'), htmlAttrs: { lang: lang.value } }))
 const { fitView, findNode, screenToFlowCoordinate, onNodesInitialized } = useVueFlow('network')
 
 // ── per-browser preferences ─────────────────────────────────────────────
@@ -327,20 +329,20 @@ async function createDevice(d: Partial<Device>) {
 
 async function createZone() {
   const c = screenToFlowCoordinate({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
-  const z = await net.saveZone({ name: 'Новая зона', kind: 'other', color: 'teal', x: Math.round(c.x - 250), y: Math.round(c.y - 160), width: 500, height: 320 })
+  const z = await net.saveZone({ name: t('New zone', 'Новая зона'), kind: 'other', color: 'teal', x: Math.round(c.x - 250), y: Math.round(c.y - 160), width: 500, height: 320 })
   if (mode.value !== 'map') mode.value = 'map'
   selection.value = { kind: 'zone', id: z.id }
 }
 
-const linkItems = toItems(linkKinds)
+const linkItems = computed(() => toItems(linkKinds, lang.value))
 const menu = computed(() => [[
-  { label: 'Подписи связей', icon: 'i-lucide-tag', type: 'checkbox' as const, checked: showLabels.value, onUpdateChecked: (v: boolean) => (showLabels.value = v) },
-  { label: 'Мини-карта', icon: 'i-lucide-map', type: 'checkbox' as const, checked: showMinimap.value, onUpdateChecked: (v: boolean) => (showMinimap.value = v) },
-  { label: 'Анимация', icon: 'i-lucide-activity', type: 'checkbox' as const, checked: animate.value, onUpdateChecked: (v: boolean) => (animate.value = v) },
+  { label: t('Link labels', 'Подписи связей'), icon: 'i-lucide-tag', type: 'checkbox' as const, checked: showLabels.value, onUpdateChecked: (v: boolean) => (showLabels.value = v) },
+  { label: t('Minimap', 'Мини-карта'), icon: 'i-lucide-map', type: 'checkbox' as const, checked: showMinimap.value, onUpdateChecked: (v: boolean) => (showMinimap.value = v) },
+  { label: t('Animation', 'Анимация'), icon: 'i-lucide-activity', type: 'checkbox' as const, checked: animate.value, onUpdateChecked: (v: boolean) => (animate.value = v) },
 ], [
-  { label: 'Показать всё', icon: 'i-lucide-scan', onSelect: () => fitView({ padding: 0.12, duration: 500 }) },
-  { label: 'Скачать JSON', icon: 'i-lucide-download', to: '/api/export', target: '_blank', external: true },
-  { label: 'Загрузить JSON…', icon: 'i-lucide-upload', onSelect: () => importInput.value?.click() },
+  { label: t('Fit all', 'Показать всё'), icon: 'i-lucide-scan', onSelect: () => fitView({ padding: 0.12, duration: 500 }) },
+  { label: t('Download JSON', 'Скачать JSON'), icon: 'i-lucide-download', to: '/api/export', target: '_blank', external: true },
+  { label: t('Load JSON…', 'Загрузить JSON…'), icon: 'i-lucide-upload', onSelect: () => importInput.value?.click() },
 ]])
 
 // ── restore from a backup ───────────────────────────────────────────────
@@ -354,11 +356,11 @@ async function pickImport(e: Event) {
   if (!file) return
   try {
     const data = JSON.parse(await file.text())
-    if (!Array.isArray(data?.zones) || !Array.isArray(data?.devices) || !Array.isArray(data?.links)) throw new Error('нет zones, devices и links')
+    if (!Array.isArray(data?.zones) || !Array.isArray(data?.devices) || !Array.isArray(data?.links)) throw new Error(t('no zones, devices and links', 'нет zones, devices и links'))
     Object.assign(importModal, { open: true, name: file.name, data })
   }
   catch (err: any) {
-    useToast().add({ title: 'Это не файл карты', description: err?.message, color: 'error', icon: 'i-lucide-triangle-alert' })
+    useToast().add({ title: t('Not a map file', 'Это не файл карты'), description: err?.message, color: 'error', icon: 'i-lucide-triangle-alert' })
   }
 }
 
@@ -372,7 +374,7 @@ async function runImport() {
     nextTick(() => fitView({ padding: 0.12, duration: 500 }))
   }
   catch (err: any) {
-    useToast().add({ title: 'Не удалось загрузить', description: err?.data?.statusMessage ?? err?.message, color: 'error', icon: 'i-lucide-triangle-alert' })
+    useToast().add({ title: t('Could not load', 'Не удалось загрузить'), description: err?.data?.statusMessage ?? err?.message, color: 'error', icon: 'i-lucide-triangle-alert' })
   }
   finally {
     importModal.busy = false
@@ -392,15 +394,15 @@ const usedKinds = computed(() => (Object.keys(linkKinds) as LinkKind[]).filter(k
       <div class="flex items-center gap-2.5 pr-2">
         <div class="logo"><UIcon name="i-lucide-waypoints" class="size-5" /></div>
         <div class="hidden leading-tight sm:block">
-          <div class="text-sm font-bold text-highlighted">Карта сети</div>
-          <div class="text-[11px] text-muted">дом · офис · облако</div>
+          <div class="text-sm font-bold text-highlighted">{{ t('Network map', 'Карта сети') }}</div>
+          <div class="text-[11px] text-muted">{{ t('home · office · cloud', 'дом · офис · облако') }}</div>
         </div>
       </div>
 
       <div class="seg">
-        <button :class="{ on: mode === 'scheme' }" @click="mode = 'scheme'"><UIcon name="i-lucide-layout-grid" class="size-4" /><span class="hidden md:inline">Схема</span></button>
-        <button :class="{ on: mode === 'map' }" @click="mode = 'map'"><UIcon name="i-lucide-map" class="size-4" /><span class="hidden md:inline">Карта</span></button>
-        <button :class="{ on: mode === 'services' }" @click="mode = 'services'; selection = null"><UIcon name="i-lucide-layout-list" class="size-4" /><span class="hidden md:inline">Сервисы</span></button>
+        <button :class="{ on: mode === 'scheme' }" @click="mode = 'scheme'"><UIcon name="i-lucide-layout-grid" class="size-4" /><span class="hidden md:inline">{{ t('Scheme', 'Схема') }}</span></button>
+        <button :class="{ on: mode === 'map' }" @click="mode = 'map'"><UIcon name="i-lucide-map" class="size-4" /><span class="hidden md:inline">{{ t('Map', 'Карта') }}</span></button>
+        <button :class="{ on: mode === 'services' }" @click="mode = 'services'; selection = null"><UIcon name="i-lucide-layout-list" class="size-4" /><span class="hidden md:inline">{{ t('Services', 'Сервисы') }}</span></button>
       </div>
 
       <USelectMenu
@@ -408,29 +410,34 @@ const usedKinds = computed(() => (Object.keys(linkKinds) as LinkKind[]).filter(k
         :items="searchItems"
         value-key="value"
         :filter-fields="['label', 'search']"
-        placeholder="Найти устройство или IP"
+        :placeholder="t('Find a device or IP', 'Найти устройство или IP')"
         icon="i-lucide-search"
         class="w-44 lg:w-64"
-        :search-input="{ placeholder: 'Имя или адрес…' }"
+        :search-input="{ placeholder: t('Name or address…', 'Имя или адрес…') }"
       >
         <template #item-trailing="{ item }">
           <span class="font-mono text-xs text-muted">{{ item.suffix }}</span>
         </template>
       </USelectMenu>
 
-      <div v-if="pinged.length" class="stat" :title="'устройств отвечают на пинг'">
+      <div v-if="pinged.length" class="stat" :title="t('devices answer ping', 'устройств отвечают на пинг')">
         <span class="size-2 rounded-full" :class="upCount === pinged.length ? 'bg-green-500' : 'bg-amber-500'" />
         <span class="tabular-nums">{{ upCount }}<span class="text-muted">/{{ pinged.length }}</span></span>
-        <span class="hidden text-muted lg:inline">в сети</span>
+        <span class="hidden text-muted lg:inline">{{ t('online', 'в сети') }}</span>
       </div>
 
       <div class="ml-auto flex items-center gap-1.5">
-        <UButton icon="i-lucide-square-dashed" label="Зона" color="neutral" variant="ghost" class="hidden md:inline-flex" @click="createZone" />
-        <UButton icon="i-lucide-plus" label="Устройство" @click="openNewDevice" />
+        <UButton icon="i-lucide-square-dashed" :label="t('Zone', 'Зона')" color="neutral" variant="ghost" class="hidden md:inline-flex" @click="createZone" />
+        <UButton icon="i-lucide-plus" :label="t('Device', 'Устройство')" @click="openNewDevice" />
         <input ref="importInput" type="file" accept="application/json,.json" class="hidden" @change="pickImport">
         <UDropdownMenu :items="menu" :content="{ align: 'end' }">
           <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" />
         </UDropdownMenu>
+        <UButton
+          :label="lang === 'ru' ? 'EN' : 'RU'" :title="t('Русский', 'English')"
+          color="neutral" variant="ghost" class="font-semibold"
+          @click="setLang(lang === 'ru' ? 'en' : 'ru')"
+        />
         <UButton
           :icon="colorMode.value === 'dark' ? 'i-lucide-moon' : 'i-lucide-sun'"
           color="neutral" variant="ghost"
@@ -489,27 +496,27 @@ const usedKinds = computed(() => (Object.keys(linkKinds) as LinkKind[]).filter(k
 
     <!-- ── legend / filter ──────────────────────────────────────── -->
     <div v-show="mode !== 'services'" class="legend">
-      <div class="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-muted">Связи</div>
+      <div class="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-muted">{{ t('Links', 'Связи') }}</div>
       <button v-for="k in usedKinds" :key="k" class="legend-row" :class="{ off: hiddenKinds.includes(k) }" @click="toggleKind(k)">
         <svg width="26" height="8" class="shrink-0"><line x1="1" y1="4" x2="25" y2="4" :stroke="linkKinds[k].color" :stroke-width="linkKinds[k].width ?? 1.5" :stroke-dasharray="linkKinds[k].dash" stroke-linecap="round" /></svg>
-        <span>{{ linkKinds[k].label }}</span>
+        <span>{{ L(linkKinds[k].label) }}</span>
       </button>
       <div v-if="mode === 'map'" class="mt-2 border-t border-default px-1 pt-2 text-[11px] leading-snug text-muted">
-        Тяните от точки на краю устройства к другому, чтобы связать.
+        {{ t('Drag from a handle on the edge of a device to another one to link them.', 'Тяните от точки на краю устройства к другому, чтобы связать.') }}
       </div>
     </div>
 
     <DetailsPanel v-if="mode !== 'services'" @focus="focus" />
 
     <!-- ── new device ───────────────────────────────────────────── -->
-    <UModal v-model:open="deviceModal" title="Новое устройство" :ui="{ content: 'max-w-2xl' }">
+    <UModal v-model:open="deviceModal" :title="t('New device', 'Новое устройство')" :ui="{ content: 'max-w-2xl' }">
       <template #body>
         <DeviceForm v-if="deviceModal" :device="newDevice" @save="createDevice" @cancel="deviceModal = false" />
       </template>
     </UModal>
 
     <!-- ── new link ─────────────────────────────────────────────── -->
-    <UModal v-model:open="linkModal.open" title="Новая связь">
+    <UModal v-model:open="linkModal.open" :title="t('New link', 'Новая связь')">
       <template #body>
         <div class="space-y-4">
           <div class="flex items-center justify-center gap-3 text-sm font-semibold text-highlighted">
@@ -527,33 +534,33 @@ const usedKinds = computed(() => (Object.keys(linkKinds) as LinkKind[]).filter(k
               {{ it.label }}
             </button>
           </div>
-          <UFormField label="Подпись на линии (необязательно)">
+          <UFormField :label="t('Label on the line (optional)', 'Подпись на линии (необязательно)')">
             <UInput v-model="linkModal.label" class="w-full" @keydown.enter="createLink" />
           </UFormField>
           <div class="flex justify-end gap-2">
-            <UButton label="Отмена" color="neutral" variant="ghost" @click="linkModal.open = false" />
-            <UButton label="Связать" icon="i-lucide-link" @click="createLink" />
+            <UButton :label="t('Cancel', 'Отмена')" color="neutral" variant="ghost" @click="linkModal.open = false" />
+            <UButton :label="t('Link', 'Связать')" icon="i-lucide-link" @click="createLink" />
           </div>
         </div>
       </template>
     </UModal>
 
     <!-- ── restore from a backup ────────────────────────────────── -->
-    <UModal v-model:open="importModal.open" title="Загрузить карту из файла">
+    <UModal v-model:open="importModal.open" :title="t('Load the map from a file', 'Загрузить карту из файла')">
       <template #body>
         <div class="space-y-4 text-sm">
           <p>
-            Вся текущая карта будет заменена содержимым <b>{{ importModal.name }}</b>
-            (зон: {{ importModal.data?.zones.length }}, устройств: {{ importModal.data?.devices.length }},
-            связей: {{ importModal.data?.links.length }}).
+            {{ t('The whole current map will be replaced with', 'Вся текущая карта будет заменена содержимым') }} <b>{{ importModal.name }}</b>
+            ({{ t('zones', 'зон') }}: {{ importModal.data?.zones.length }}, {{ t('devices', 'устройств') }}: {{ importModal.data?.devices.length }},
+            {{ t('links', 'связей') }}: {{ importModal.data?.links.length }}).
           </p>
           <p class="text-muted">
-            Сейчас на карте зон: {{ zones.length }}, устройств: {{ devices.length }}, связей: {{ links.length }}.
-            Если они нужны, сначала «Скачать JSON».
+            {{ t('The map now has', 'Сейчас на карте') }} {{ t('zones', 'зон') }}: {{ zones.length }}, {{ t('devices', 'устройств') }}: {{ devices.length }}, {{ t('links', 'связей') }}: {{ links.length }}.
+            {{ t('If you need them, “Download JSON” first.', 'Если они нужны, сначала «Скачать JSON».') }}
           </p>
           <div class="flex justify-end gap-2">
-            <UButton label="Отмена" color="neutral" variant="ghost" @click="importModal.open = false" />
-            <UButton label="Заменить карту" icon="i-lucide-upload" color="error" :loading="importModal.busy" @click="runImport" />
+            <UButton :label="t('Cancel', 'Отмена')" color="neutral" variant="ghost" @click="importModal.open = false" />
+            <UButton :label="t('Replace the map', 'Заменить карту')" icon="i-lucide-upload" color="error" :loading="importModal.busy" @click="runImport" />
           </div>
         </div>
       </template>

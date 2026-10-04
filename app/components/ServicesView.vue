@@ -4,6 +4,7 @@
 const emit = defineEmits<{ focus: [deviceId: number] }>()
 const net = useNetwork()
 const { devices, zones, zoneById } = net
+const { lang, t } = useLang()
 
 const query = ref('')
 
@@ -85,22 +86,28 @@ const initials = (name: string) => name.replace(/[^\p{L}\p{N} ]/gu, '').split(/\
     <div class="mx-auto max-w-6xl px-4 pt-24 pb-16">
       <div class="mb-6 flex flex-wrap items-end gap-4">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-highlighted">Сервисы</h1>
+          <h1 class="text-2xl font-bold tracking-tight text-highlighted">{{ t('Services', 'Сервисы') }}</h1>
           <p class="mt-1 text-sm text-muted">
-            {{ counts.total }} всего · {{ counts.local }} по локальному домену · {{ counts.public }} из интернета.
-            Всё, у чего есть веб-адрес; хранятся в карточках устройств.
+            <template v-if="lang === 'ru'">
+              {{ counts.total }} всего · {{ counts.local }} по локальному домену · {{ counts.public }} из интернета.
+              Всё, у чего есть веб-адрес; хранятся в карточках устройств.
+            </template>
+            <template v-else>
+              {{ counts.total }} in total · {{ counts.local }} by local name · {{ counts.public }} from the internet.
+              Everything with a web address; they live on device cards.
+            </template>
           </p>
         </div>
         <div class="ml-auto flex items-center gap-2">
-          <UInput v-model="query" icon="i-lucide-search" placeholder="Название, адрес, машина…" class="w-64" />
-          <UButton icon="i-lucide-plus" label="Сервис" @click="openNew" />
+          <UInput v-model="query" icon="i-lucide-search" :placeholder="t('Name, address, machine…', 'Название, адрес, машина…')" class="w-64" />
+          <UButton icon="i-lucide-plus" :label="t('Service', 'Сервис')" @click="openNew" />
         </div>
       </div>
 
       <section v-for="g in groups" :key="g.zone?.id ?? 'none'" class="mb-8">
         <div class="mb-3 flex items-center gap-2">
           <span class="size-2.5 rounded-full" :style="{ background: zoneColor(g.zone?.color ?? 'zinc') }" />
-          <h2 class="text-sm font-bold uppercase tracking-wider text-muted">{{ g.zone?.name ?? 'Вне зон' }}</h2>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-muted">{{ g.zone?.name ?? t('Outside zones', 'Вне зон') }}</h2>
           <span class="text-xs text-dimmed">{{ g.rows.length }}</span>
         </div>
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -138,34 +145,34 @@ const initials = (name: string) => name.replace(/[^\p{L}\p{N} ]/gu, '').split(/\
         </div>
       </section>
 
-      <p v-if="!groups.length" class="py-20 text-center text-muted">Ничего не найдено.</p>
+      <p v-if="!groups.length" class="py-20 text-center text-muted">{{ t('Nothing found.', 'Ничего не найдено.') }}</p>
     </div>
 
-    <UModal v-model:open="modal.open" :title="modal.index >= 0 ? 'Сервис' : 'Новый сервис'">
+    <UModal v-model:open="modal.open" :title="modal.index >= 0 ? t('Service', 'Сервис') : t('New service', 'Новый сервис')">
       <template #body>
         <form class="space-y-4" @submit.prevent="saveOrMove">
-          <UFormField label="Название" required>
+          <UFormField :label="t('Name', 'Название')" required>
             <UInput v-model="modal.draft.name" class="w-full" autofocus />
           </UFormField>
-          <UFormField label="На какой машине" required>
-            <USelectMenu v-model="modal.deviceId" :items="deviceItems" value-key="value" placeholder="Выберите устройство" class="w-full" />
+          <UFormField :label="t('On which machine', 'На какой машине')" required>
+            <USelectMenu v-model="modal.deviceId" :items="deviceItems" value-key="value" :placeholder="t('Pick a device', 'Выберите устройство')" class="w-full" />
           </UFormField>
-          <UFormField label="По IP">
+          <UFormField :label="t('By IP', 'По IP')">
             <UInput v-model="modal.draft.url" placeholder="http://192.168.10.20:81" icon="i-lucide-network" class="w-full font-mono" />
           </UFormField>
-          <UFormField label="Локальный домен" help="Открывается только изнутри сети">
+          <UFormField :label="t('Local name', 'Локальный домен')" :help="t('Opens only from inside the network', 'Открывается только изнутри сети')">
             <UInput v-model="modal.draft.localUrl" placeholder="https://proxy.home.example" icon="i-lucide-house" class="w-full font-mono" />
           </UFormField>
-          <UFormField label="Из интернета">
+          <UFormField :label="t('From the internet', 'Из интернета')">
             <UInput v-model="modal.draft.publicUrl" placeholder="https://cloud.example.com" icon="i-lucide-globe" class="w-full font-mono" />
           </UFormField>
-          <UFormField label="Заметка">
+          <UFormField :label="t('Note', 'Заметка')">
             <UInput v-model="modal.draft.note" class="w-full" />
           </UFormField>
           <div class="flex gap-2 pt-2">
-            <UButton v-if="modal.index >= 0" icon="i-lucide-trash-2" :label="modal.confirm ? 'Точно удалить?' : undefined" color="error" variant="soft" @click="remove" />
-            <UButton label="Отмена" color="neutral" variant="ghost" class="ml-auto" @click="modal.open = false" />
-            <UButton type="submit" label="Сохранить" icon="i-lucide-check" :disabled="!modal.deviceId || !modal.draft.name?.trim()" />
+            <UButton v-if="modal.index >= 0" icon="i-lucide-trash-2" :label="modal.confirm ? t('Delete for sure?', 'Точно удалить?') : undefined" color="error" variant="soft" @click="remove" />
+            <UButton :label="t('Cancel', 'Отмена')" color="neutral" variant="ghost" class="ml-auto" @click="modal.open = false" />
+            <UButton type="submit" :label="t('Save', 'Сохранить')" icon="i-lucide-check" :disabled="!modal.deviceId || !modal.draft.name?.trim()" />
           </div>
         </form>
       </template>

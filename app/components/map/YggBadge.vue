@@ -3,6 +3,7 @@
 // Yggdrasil addresses is pinged.
 const props = defineProps<{ id: number, compact?: boolean }>()
 const { deviceById, addressStatus } = useNetwork()
+const { t, lang } = useLang()
 
 const best = computed(() => {
   const d = deviceById(props.id)
@@ -15,7 +16,9 @@ const best = computed(() => {
 const title = computed(() => {
   const b = best.value
   if (!b) return ''
-  return b.state === 'up' ? `Yggdrasil отвечает${b.rtt != null ? ` · ${fmtRtt(b.rtt)}` : ''}` : 'Yggdrasil не отвечает'
+  return b.state === 'up'
+    ? `${t('Yggdrasil answers', 'Yggdrasil отвечает')}${b.rtt != null ? ` · ${fmtRtt(b.rtt, lang.value)}` : ''}`
+    : t('Yggdrasil does not answer', 'Yggdrasil не отвечает')
 })
 </script>
 

@@ -81,8 +81,8 @@ export function buildDigest() {
   }
 }
 
-const labels = (rec: Record<string, { label: string }>) =>
-  Object.fromEntries(Object.entries(rec).map(([k, v]) => [k, v.label]))
+const labels = (rec: Record<string, { label: Label }>) =>
+  Object.fromEntries(Object.entries(rec).map(([k, v]) => [k, v.label.ru]))
 
 // The same digest as Markdown: the cheapest form for a language model to read.
 export function digestMarkdown(): string {
@@ -96,13 +96,13 @@ export function digestMarkdown(): string {
 
   const device = (d: (typeof g.devices)[number]) => {
     out.push(`### ${d.name}`, '')
-    out.push(`- Тип: ${deviceTypes[d.type]?.label ?? d.type} (\`${d.type}\`)${d.os ? `, ОС: ${d.os}` : ''}`)
+    out.push(`- Тип: ${deviceTypes[d.type]?.label.ru ?? d.type} (\`${d.type}\`)${d.os ? `, ОС: ${d.os}` : ''}`)
     out.push(`- Состояние: ${stateRu[d.state]}`)
     if (d.description) out.push(`- Описание: ${d.description}`)
     if (d.addresses.length) {
       out.push('- Адреса:')
       for (const a of d.addresses) {
-        const kind = addressKinds[a.kind]?.label ?? a.kind
+        const kind = addressKinds[a.kind]?.label.ru ?? a.kind
         const ping = a.ping ? ` — пинг раз в ${a.ping.every} с: ${stateRu[a.ping.state]}${a.ping.rttMs != null ? `, ${a.ping.rttMs} мс` : ''}` : ''
         out.push(`  - ${kind}: \`${a.value}\`${a.label ? ` (${a.label})` : ''}${ping}`)
       }
@@ -122,7 +122,7 @@ export function digestMarkdown(): string {
   }
 
   for (const z of g.zones) {
-    out.push(`## Зона «${z.name}» — ${zoneKinds[z.kind]?.label ?? z.kind}${z.subnet ? `, ${z.subnet}` : ''}`, '')
+    out.push(`## Зона «${z.name}» — ${zoneKinds[z.kind]?.label.ru ?? z.kind}${z.subnet ? `, ${z.subnet}` : ''}`, '')
     if (z.description) out.push(z.description, '')
     g.devices.filter(d => d.zone === z.name).forEach(device)
   }
@@ -134,7 +134,7 @@ export function digestMarkdown(): string {
 
   out.push('## Связи', '')
   for (const l of g.links) {
-    const kind = linkKinds[l.kind]?.label ?? l.kind
+    const kind = linkKinds[l.kind]?.label.ru ?? l.kind
     out.push(`- ${l.from} → ${l.to}: ${kind}${l.label ? ` «${l.label}»` : ''}${l.notes ? ` — ${l.notes.replace(/\n+/g, ' ')}` : ''}`)
   }
   out.push('')

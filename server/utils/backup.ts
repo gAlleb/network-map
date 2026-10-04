@@ -9,7 +9,7 @@ export function importNetwork(db: DatabaseSync, data: Partial<NetworkData>) {
   const devices = Array.isArray(data?.devices) ? data.devices : null
   const links = Array.isArray(data?.links) ? data.links : null
   if (!zones || !devices || !links) {
-    throw createError({ statusCode: 400, statusMessage: 'ожидается JSON из «Скачать JSON»: zones, devices, links' })
+    throw createError({ statusCode: 400, statusMessage: 'expected a file from “Download JSON”: zones, devices, links' })
   }
   const zoneIds = new Set(zones.map(z => Number(z.id)))
   const deviceIds = new Set(devices.map(d => Number(d.id)))

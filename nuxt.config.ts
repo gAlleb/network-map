@@ -7,8 +7,8 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Карта сети',
-      htmlAttrs: { lang: 'ru' },
+      title: 'Network map',
+      htmlAttrs: { lang: 'en' },
       link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
     },
   },

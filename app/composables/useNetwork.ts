@@ -23,6 +23,7 @@ export function useNetwork() {
   const loaded = useState('loaded', () => false)
 
   const toast = useToast()
+  const { t } = useLang()
   const fail = (title: string) => (e: any) => {
     toast.add({ title, description: e?.data?.statusMessage ?? e?.message, color: 'error', icon: 'i-lucide-triangle-alert' })
     throw e
@@ -68,17 +69,17 @@ export function useNetwork() {
   // ── devices ───────────────────────────────────────────────────────────
   async function saveDevice(d: Partial<Device> & { id?: number }) {
     if (d.id) {
-      const saved = await $fetch<Device>(`/api/devices/${d.id}`, { method: 'PUT', body: d }).catch(fail('Не удалось сохранить устройство'))
+      const saved = await $fetch<Device>(`/api/devices/${d.id}`, { method: 'PUT', body: d }).catch(fail(t('Could not save the device', 'Не удалось сохранить устройство')))
       devices.value = devices.value.map(x => (x.id === saved.id ? saved : x))
       return saved
     }
-    const saved = await $fetch<Device>('/api/devices', { method: 'POST', body: d }).catch(fail('Не удалось добавить устройство'))
+    const saved = await $fetch<Device>('/api/devices', { method: 'POST', body: d }).catch(fail(t('Could not add the device', 'Не удалось добавить устройство')))
     devices.value = [...devices.value, saved]
     return saved
   }
 
   async function deleteDevice(id: number) {
-    await $fetch(`/api/devices/${id}`, { method: 'DELETE' }).catch(fail('Не удалось удалить устройство'))
+    await $fetch(`/api/devices/${id}`, { method: 'DELETE' }).catch(fail(t('Could not delete the device', 'Не удалось удалить устройство')))
     devices.value = devices.value.filter(d => d.id !== id)
     links.value = links.value.filter(l => l.source !== id && l.target !== id)
     if (selection.value?.kind === 'device' && selection.value.id === id) selection.value = null
@@ -87,17 +88,17 @@ export function useNetwork() {
   // ── links ─────────────────────────────────────────────────────────────
   async function saveLink(l: Partial<Link> & { id?: number }) {
     if (l.id) {
-      const saved = await $fetch<Link>(`/api/links/${l.id}`, { method: 'PUT', body: l }).catch(fail('Не удалось сохранить связь'))
+      const saved = await $fetch<Link>(`/api/links/${l.id}`, { method: 'PUT', body: l }).catch(fail(t('Could not save the link', 'Не удалось сохранить связь')))
       links.value = links.value.map(x => (x.id === saved.id ? saved : x))
       return saved
     }
-    const saved = await $fetch<Link>('/api/links', { method: 'POST', body: l }).catch(fail('Не удалось добавить связь'))
+    const saved = await $fetch<Link>('/api/links', { method: 'POST', body: l }).catch(fail(t('Could not add the link', 'Не удалось добавить связь')))
     links.value = [...links.value, saved]
     return saved
   }
 
   async function deleteLink(id: number) {
-    await $fetch(`/api/links/${id}`, { method: 'DELETE' }).catch(fail('Не удалось удалить связь'))
+    await $fetch(`/api/links/${id}`, { method: 'DELETE' }).catch(fail(t('Could not delete the link', 'Не удалось удалить связь')))
     links.value = links.value.filter(l => l.id !== id)
     if (selection.value?.kind === 'link' && selection.value.id === id) selection.value = null
   }
@@ -105,17 +106,17 @@ export function useNetwork() {
   // ── zones ─────────────────────────────────────────────────────────────
   async function saveZone(z: Partial<Zone> & { id?: number }) {
     if (z.id) {
-      const saved = await $fetch<Zone>(`/api/zones/${z.id}`, { method: 'PUT', body: z }).catch(fail('Не удалось сохранить зону'))
+      const saved = await $fetch<Zone>(`/api/zones/${z.id}`, { method: 'PUT', body: z }).catch(fail(t('Could not save the zone', 'Не удалось сохранить зону')))
       zones.value = zones.value.map(x => (x.id === saved.id ? saved : x))
       return saved
     }
-    const saved = await $fetch<Zone>('/api/zones', { method: 'POST', body: z }).catch(fail('Не удалось добавить зону'))
+    const saved = await $fetch<Zone>('/api/zones', { method: 'POST', body: z }).catch(fail(t('Could not add the zone', 'Не удалось добавить зону')))
     zones.value = [...zones.value, saved]
     return saved
   }
 
   async function deleteZone(id: number) {
-    await $fetch(`/api/zones/${id}`, { method: 'DELETE' }).catch(fail('Не удалось удалить зону'))
+    await $fetch(`/api/zones/${id}`, { method: 'DELETE' }).catch(fail(t('Could not delete the zone', 'Не удалось удалить зону')))
     zones.value = zones.value.filter(z => z.id !== id)
     devices.value = devices.value.map(d => (d.zoneId === id ? { ...d, zoneId: null } : d))
     if (selection.value?.kind === 'zone' && selection.value.id === id) selection.value = null
@@ -144,7 +145,7 @@ export function useNetwork() {
     pending.devices.clear()
     pending.zones.clear()
     if (!body.devices.length && !body.zones.length) return
-    await $fetch('/api/positions', { method: 'PUT', body }).catch(fail('Не удалось сохранить расположение'))
+    await $fetch('/api/positions', { method: 'PUT', body }).catch(fail(t('Could not save the layout', 'Не удалось сохранить расположение')))
   }
 
   return {

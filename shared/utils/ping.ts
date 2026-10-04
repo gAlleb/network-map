@@ -9,9 +9,13 @@ export function defaultPingInterval(kind: AddressKind): number {
   return 20
 }
 
-export function pingIntervalLabel(s: number | undefined): string {
-  if (!s) return 'не пинговать'
-  return s < 60 ? `каждые ${s} с` : `каждые ${s / 60} мин`
+export function pingIntervalLabel(s: number | undefined, lang: Lang): string {
+  if (lang === 'ru') {
+    if (!s) return 'не пинговать'
+    return s < 60 ? `каждые ${s} с` : `каждые ${s / 60} мин`
+  }
+  if (!s) return 'not pinged'
+  return s < 60 ? `every ${s} s` : `every ${s / 60} min`
 }
 
 // Rows written before per-address pinging had a single ping_host column.

@@ -5,6 +5,7 @@ const emit = defineEmits<{ focus: [deviceId: number] }>()
 const net = useNetwork()
 const { selection, devices, links, zones, deviceById, zoneById, health, addressStatus } = net
 const toast = useToast()
+const { lang, t, L } = useLang()
 
 const editing = ref(false)
 const confirmDelete = ref(false)
@@ -21,13 +22,13 @@ const zone = computed(() => (selection.value?.kind === 'zone' ? zoneById(selecti
 // ── device ──────────────────────────────────────────────────────────────
 const statusText = computed(() => {
   const h = health(device.value!.id)
-  const ms = h.rtt != null ? ` · ${fmtRtt(h.rtt)}` : ''
+  const ms = h.rtt != null ? ` · ${fmtRtt(h.rtt, lang.value)}` : ''
   return {
-    off: { text: 'Не проверяется', color: 'neutral' as const },
-    unknown: { text: 'Проверяется…', color: 'neutral' as const },
-    up: { text: `В сети${ms}`, color: 'success' as const },
-    partial: { text: `Отвечают ${h.up} из ${h.total}${ms}`, color: 'warning' as const },
-    down: { text: 'Не отвечает', color: 'error' as const },
+    off: { text: t('Not checked', 'Не проверяется'), color: 'neutral' as const },
+    unknown: { text: t('Checking…', 'Проверяется…'), color: 'neutral' as const },
+    up: { text: `${t('Online', 'В сети')}${ms}`, color: 'success' as const },
+    partial: { text: `${t(`${h.up} of ${h.total} answer`, `Отвечают ${h.up} из ${h.total}`)}${ms}`, color: 'warning' as const },
+    down: { text: t('Not answering', 'Не отвечает'), color: 'error' as const },
   }[h.state]
 })
 
@@ -35,7 +36,7 @@ const statusText = computed(() => {
 // saves the device straight away.
 function pingMenu(index: number) {
   return [pingIntervals.map(s => ({
-    label: s ? pingIntervalLabel(s) : 'Не пинговать',
+    label: s ? pingIntervalLabel(s, lang.value) : t('Do not ping', 'Не пинговать'),
     icon: (device.value!.addresses[index]!.ping ?? 0) === s ? 'i-lucide-check' : undefined,
     onSelect: () => setPing(index, s),
   }))]
@@ -47,7 +48,8 @@ async function setPing(index: number, seconds: number) {
 }
 function ago(ts: number) {
   const s = Math.round((Date.now() - ts) / 1000)
-  return s < 60 ? `${s} с назад` : `${Math.round(s / 60)} мин назад`
+  if (lang.value === 'ru') return s < 60 ? `${s} с назад` : `${Math.round(s / 60)} мин назад`
+  return s < 60 ? `${s} s ago` : `${Math.round(s / 60)} min ago`
 }
 
 const webServices = computed(() => device.value?.services.filter(isWebService) ?? [])
@@ -64,7 +66,7 @@ const deviceLinks = computed(() => {
 
 async function copy(text: string) {
   await navigator.clipboard.writeText(text)
-  toast.add({ title: 'Скопировано', description: text, icon: 'i-lucide-clipboard-check', duration: 1500 })
+  toast.add({ title: t('Copied', 'Скопировано'), description: text, icon: 'i-lucide-clipboard-check', duration: 1500 })
 }
 
 async function saveDevice(d: Partial<Device>) {
@@ -92,7 +94,7 @@ const linkDraft = ref<Partial<Link>>({})
 watch(link, l => (linkDraft.value = l ? { ...l } : {}), { immediate: true })
 async function saveLink() {
   await net.saveLink(linkDraft.value)
-  toast.add({ title: 'Связь сохранена', icon: 'i-lucide-check', duration: 1500 })
+  toast.add({ title: t('Link saved', 'Связь сохранена'), icon: 'i-lucide-check', duration: 1500 })
 }
 async function removeLink() {
   if (!confirmDelete.value) return (confirmDelete.value = true)
@@ -105,15 +107,15 @@ watch(zone, z => (zoneDraft.value = z ? { ...z } : {}), { immediate: true })
 const zoneMembers = computed(() => devices.value.filter(d => d.zoneId === zone.value?.id))
 async function saveZone() {
   await net.saveZone(zoneDraft.value)
-  toast.add({ title: 'Зона сохранена', icon: 'i-lucide-check', duration: 1500 })
+  toast.add({ title: t('Zone saved', 'Зона сохранена'), icon: 'i-lucide-check', duration: 1500 })
 }
 async function removeZone() {
   if (!confirmDelete.value) return (confirmDelete.value = true)
   await net.deleteZone(zone.value!.id)
 }
 
-const linkItems = toItems(linkKinds)
-const zoneKindItems = toItems(zoneKinds)
+const linkItems = computed(() => toItems(linkKinds, lang.value))
+const zoneKindItems = computed(() => toItems(zoneKinds, lang.value))
 </script>
 
 <template>
@@ -123,7 +125,7 @@ const zoneKindItems = toItems(zoneKinds)
 
       <!-- ── Device ─────────────────────────────────────────────── -->
       <div v-if="device && editing" class="p-5">
-        <h2 class="mb-4 text-lg font-semibold">Редактирование</h2>
+        <h2 class="mb-4 text-lg font-semibold">{{ t('Editing', 'Редактирование') }}</h2>
         <DeviceForm :key="device.id" :device="device" @save="saveDevice" @cancel="editing = false" />
       </div>
 
@@ -132,7 +134,7 @@ const zoneKindItems = toItems(zoneKinds)
           <DeviceArt :type="device.type" :accent="meshAccent(device)" :size="96" />
           <div class="min-w-0">
             <h2 class="truncate text-xl font-bold tracking-tight text-highlighted">{{ device.name }}</h2>
-            <div class="mt-0.5 text-sm text-muted">{{ deviceTypes[device.type]?.label }}<template v-if="device.os"> · {{ device.os }}</template></div>
+            <div class="mt-0.5 text-sm text-muted">{{ L(deviceTypes[device.type]?.label) }}<template v-if="device.os"> · {{ device.os }}</template></div>
             <div class="mt-2 flex flex-wrap gap-1.5">
               <UBadge :color="statusText.color" variant="subtle" class="gap-1.5">
                 <MapStatusDot :id="device.id" size="sm" />
@@ -149,28 +151,28 @@ const zoneKindItems = toItems(zoneKinds)
           <p v-if="device.description" class="text-sm text-default">{{ device.description }}</p>
 
           <section v-if="device.addresses.length">
-            <h3 class="section-title">Адреса</h3>
+            <h3 class="section-title">{{ t('Addresses', 'Адреса') }}</h3>
             <ul class="divide-y divide-default overflow-hidden rounded-xl border border-default">
               <li v-for="(a, i) in device.addresses" :key="i" class="group flex items-center gap-3 px-3 py-2 hover:bg-elevated/60">
                 <span class="kind" :style="{ '--c': addressKinds[a.kind]?.color }">{{ addressKinds[a.kind]?.short }}</span>
                 <div class="min-w-0 flex-1">
                   <div class="truncate font-mono text-[13px] text-highlighted">{{ a.value }}</div>
-                  <div class="text-xs text-muted">{{ addressKinds[a.kind]?.label }}<template v-if="a.label"> · {{ a.label }}</template></div>
+                  <div class="text-xs text-muted">{{ L(addressKinds[a.kind]?.label) }}<template v-if="a.label"> · {{ a.label }}</template></div>
                 </div>
                 <UDropdownMenu v-if="a.kind !== 'mac'" :items="pingMenu(i)" :content="{ align: 'end' }">
                   <button
                     v-if="a.ping" type="button" class="ping-pill"
                     :class="addressStatus(device.id, a)?.state ?? 'unknown'"
-                    :title="`${pingIntervalLabel(a.ping)}${addressStatus(device.id, a) ? `, проверено ${ago(addressStatus(device.id, a)!.checkedAt)}` : ''}`"
+                    :title="`${pingIntervalLabel(a.ping, lang)}${addressStatus(device.id, a) ? `, ${t('checked', 'проверено')} ${ago(addressStatus(device.id, a)!.checkedAt)}` : ''}`"
                   >
                     <span class="size-1.5 rounded-full bg-current" />
                     <template v-if="!addressStatus(device.id, a)">…</template>
-                    <template v-else-if="addressStatus(device.id, a)!.state === 'up'">{{ fmtRtt(addressStatus(device.id, a)!.rtt) || 'ок' }}</template>
-                    <template v-else>нет</template>
+                    <template v-else-if="addressStatus(device.id, a)!.state === 'up'">{{ fmtRtt(addressStatus(device.id, a)!.rtt, lang) || t('ok', 'ок') }}</template>
+                    <template v-else>{{ t('no', 'нет') }}</template>
                   </button>
                   <UButton
                     v-else icon="i-lucide-radar" size="xs" color="neutral" variant="ghost"
-                    class="opacity-0 group-hover:opacity-60" title="Пинговать этот адрес"
+                    class="opacity-0 group-hover:opacity-60" :title="t('Ping this address', 'Пинговать этот адрес')"
                   />
                 </UDropdownMenu>
                 <UButton icon="i-lucide-copy" size="xs" color="neutral" variant="ghost" class="opacity-0 group-hover:opacity-100" @click="copy(a.value)" />
@@ -179,7 +181,7 @@ const zoneKindItems = toItems(zoneKinds)
           </section>
 
           <section v-if="webServices.length">
-            <h3 class="section-title">Веб-сервисы</h3>
+            <h3 class="section-title">{{ t('Web services', 'Веб-сервисы') }}</h3>
             <ul class="space-y-1.5">
               <li v-for="(s, i) in webServices" :key="i" class="flex items-start gap-2 text-sm">
                 <UIcon name="i-lucide-dot" class="mt-0.5 size-4 shrink-0 text-muted" />
@@ -201,7 +203,7 @@ const zoneKindItems = toItems(zoneKinds)
           </section>
 
           <section v-if="otherServices.length">
-            <h3 class="section-title">Также работает</h3>
+            <h3 class="section-title">{{ t('Also runs', 'Также работает') }}</h3>
             <div class="flex flex-wrap gap-1.5">
               <UTooltip v-for="(s, i) in otherServices" :key="i" :text="s.note" :disabled="!s.note">
                 <UBadge color="neutral" variant="soft" :label="s.name" />
@@ -211,84 +213,84 @@ const zoneKindItems = toItems(zoneKinds)
 
           <section>
             <div class="mb-2 flex items-center justify-between">
-              <h3 class="section-title !mb-0">Связи</h3>
-              <UButton icon="i-lucide-plus" label="Связь" size="xs" color="neutral" variant="soft" @click="newLink.open = !newLink.open" />
+              <h3 class="section-title !mb-0">{{ t('Links', 'Связи') }}</h3>
+              <UButton icon="i-lucide-plus" :label="t('Link', 'Связь')" size="xs" color="neutral" variant="soft" @click="newLink.open = !newLink.open" />
             </div>
             <div v-if="newLink.open" class="mb-3 space-y-2 rounded-xl border border-default bg-elevated/50 p-3">
-              <USelectMenu v-model="newLink.target" :items="otherDevices" value-key="value" placeholder="С каким устройством" class="w-full" />
+              <USelectMenu v-model="newLink.target" :items="otherDevices" value-key="value" :placeholder="t('With which device', 'С каким устройством')" class="w-full" />
               <div class="flex gap-2">
                 <USelect v-model="newLink.kind" :items="linkItems" class="w-40" />
-                <UInput v-model="newLink.label" placeholder="подпись" class="flex-1" />
+                <UInput v-model="newLink.label" :placeholder="t('label', 'подпись')" class="flex-1" />
               </div>
               <div class="flex justify-end">
-                <UButton label="Добавить" size="sm" :disabled="!newLink.target" @click="addLink" />
+                <UButton :label="t('Add', 'Добавить')" size="sm" :disabled="!newLink.target" @click="addLink" />
               </div>
             </div>
             <ul v-if="deviceLinks.length" class="space-y-1">
-              <li v-for="{ link: l, other } in deviceLinks" :key="l.id" class="link-row" title="Изменить связь" @click="selection = { kind: 'link', id: l.id }">
+              <li v-for="{ link: l, other } in deviceLinks" :key="l.id" class="link-row" :title="t('Edit the link', 'Изменить связь')" @click="selection = { kind: 'link', id: l.id }">
                 <span class="h-0.5 w-5 shrink-0 rounded" :style="{ background: linkKinds[l.kind]?.color }" />
-                <span class="text-xs text-muted">{{ linkKinds[l.kind]?.label }}</span>
+                <span class="text-xs text-muted">{{ L(linkKinds[l.kind]?.label) }}</span>
                 <UIcon name="i-lucide-arrow-right" class="size-3.5 text-dimmed" />
-                <button class="truncate font-medium text-highlighted hover:underline" title="Перейти к устройству" @click.stop="emit('focus', other.id)">{{ other.name }}</button>
+                <button class="truncate font-medium text-highlighted hover:underline" :title="t('Go to the device', 'Перейти к устройству')" @click.stop="emit('focus', other.id)">{{ other.name }}</button>
                 <span v-if="l.label" class="ml-auto truncate text-xs text-muted">{{ l.label }}</span>
                 <UIcon name="i-lucide-pencil" class="edit size-3.5 shrink-0 text-muted" :class="{ 'ml-auto': !l.label }" />
               </li>
             </ul>
-            <p v-else-if="!newLink.open" class="text-sm text-muted">Связей нет. На карте их можно провести мышью от точки на краю устройства.</p>
+            <p v-else-if="!newLink.open" class="text-sm text-muted">{{ t('No links. On the map, drag from a handle on the edge of a device to draw one.', 'Связей нет. На карте их можно провести мышью от точки на краю устройства.') }}</p>
           </section>
 
           <section v-if="device.notes">
-            <h3 class="section-title">Заметки</h3>
+            <h3 class="section-title">{{ t('Notes', 'Заметки') }}</h3>
             <p class="whitespace-pre-line text-sm text-default">{{ device.notes }}</p>
           </section>
         </div>
 
         <div class="sticky bottom-0 flex gap-2 border-t border-default bg-default/90 p-4 backdrop-blur">
-          <UButton icon="i-lucide-pencil" label="Изменить" class="flex-1 justify-center" @click="editing = true" />
-          <UButton icon="i-lucide-trash-2" :label="confirmDelete ? 'Точно удалить?' : undefined" color="error" variant="soft" @click="removeDevice" />
+          <UButton icon="i-lucide-pencil" :label="t('Edit', 'Изменить')" class="flex-1 justify-center" @click="editing = true" />
+          <UButton icon="i-lucide-trash-2" :label="confirmDelete ? t('Delete for sure?', 'Точно удалить?') : undefined" color="error" variant="soft" @click="removeDevice" />
         </div>
       </div>
 
       <!-- ── Link ───────────────────────────────────────────────── -->
       <div v-else-if="link" class="space-y-5 p-5">
         <div>
-          <div class="text-xs font-semibold uppercase tracking-wider" :style="{ color: linkKinds[link.kind]?.color }">Связь</div>
+          <div class="text-xs font-semibold uppercase tracking-wider" :style="{ color: linkKinds[link.kind]?.color }">{{ t('Link', 'Связь') }}</div>
           <h2 class="mt-1 flex items-center gap-2 text-lg font-bold text-highlighted">
             <button class="hover:underline" @click="emit('focus', link.source)">{{ deviceById(link.source)?.name }}</button>
             <UIcon name="i-lucide-arrow-left-right" class="size-4 text-muted" />
             <button class="hover:underline" @click="emit('focus', link.target)">{{ deviceById(link.target)?.name }}</button>
           </h2>
         </div>
-        <UFormField label="Тип">
+        <UFormField :label="t('Type', 'Тип')">
           <USelect v-model="linkDraft.kind" :items="linkItems" class="w-full" />
         </UFormField>
-        <UFormField label="Подпись на линии">
+        <UFormField :label="t('Label on the line', 'Подпись на линии')">
           <UInput v-model="linkDraft.label" class="w-full" />
         </UFormField>
-        <UFormField label="Заметки">
+        <UFormField :label="t('Notes', 'Заметки')">
           <UTextarea v-model="linkDraft.notes" :rows="4" autoresize class="w-full" />
         </UFormField>
         <div class="flex gap-2">
-          <UButton icon="i-lucide-check" label="Сохранить" class="flex-1 justify-center" @click="saveLink" />
-          <UButton icon="i-lucide-trash-2" :label="confirmDelete ? 'Точно удалить?' : undefined" color="error" variant="soft" @click="removeLink" />
+          <UButton icon="i-lucide-check" :label="t('Save', 'Сохранить')" class="flex-1 justify-center" @click="saveLink" />
+          <UButton icon="i-lucide-trash-2" :label="confirmDelete ? t('Delete for sure?', 'Точно удалить?') : undefined" color="error" variant="soft" @click="removeLink" />
         </div>
       </div>
 
       <!-- ── Zone ───────────────────────────────────────────────── -->
       <div v-else-if="zone" class="space-y-5 p-5">
-        <div class="text-xs font-semibold uppercase tracking-wider" :style="{ color: zoneColor(zone.color) }">Зона</div>
-        <UFormField label="Название">
+        <div class="text-xs font-semibold uppercase tracking-wider" :style="{ color: zoneColor(zone.color) }">{{ t('Zone', 'Зона') }}</div>
+        <UFormField :label="t('Name', 'Название')">
           <UInput v-model="zoneDraft.name" class="w-full" />
         </UFormField>
         <div class="grid grid-cols-2 gap-3">
-          <UFormField label="Тип">
+          <UFormField :label="t('Type', 'Тип')">
             <USelect v-model="zoneDraft.kind" :items="zoneKindItems" class="w-full" />
           </UFormField>
-          <UFormField label="Подсеть">
+          <UFormField :label="t('Subnet', 'Подсеть')">
             <UInput v-model="zoneDraft.subnet" placeholder="192.168.1.0/24" class="w-full font-mono" />
           </UFormField>
         </div>
-        <UFormField label="Цвет">
+        <UFormField :label="t('Colour', 'Цвет')">
           <div class="flex flex-wrap gap-2">
             <button
               v-for="(hex, name) in zoneColors" :key="name" type="button"
@@ -299,18 +301,18 @@ const zoneKindItems = toItems(zoneKinds)
             />
           </div>
         </UFormField>
-        <UFormField label="Описание">
+        <UFormField :label="t('Description', 'Описание')">
           <UTextarea v-model="zoneDraft.description" :rows="3" autoresize class="w-full" />
         </UFormField>
         <section v-if="zoneMembers.length">
-          <h3 class="section-title">Устройства · {{ zoneMembers.length }}</h3>
+          <h3 class="section-title">{{ t('Devices', 'Устройства') }} · {{ zoneMembers.length }}</h3>
           <div class="flex flex-wrap gap-1.5">
             <UButton v-for="d in zoneMembers" :key="d.id" :label="d.name" :icon="deviceTypes[d.type]?.icon" size="xs" color="neutral" variant="outline" @click="emit('focus', d.id)" />
           </div>
         </section>
         <div class="flex gap-2">
-          <UButton icon="i-lucide-check" label="Сохранить" class="flex-1 justify-center" @click="saveZone" />
-          <UButton icon="i-lucide-trash-2" :label="confirmDelete ? 'Удалить зону? Устройства останутся' : undefined" color="error" variant="soft" @click="removeZone" />
+          <UButton icon="i-lucide-check" :label="t('Save', 'Сохранить')" class="flex-1 justify-center" @click="saveZone" />
+          <UButton icon="i-lucide-trash-2" :label="confirmDelete ? t('Delete the zone? Devices stay', 'Удалить зону? Устройства останутся') : undefined" color="error" variant="soft" @click="removeZone" />
         </div>
       </div>
     </aside>

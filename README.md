@@ -7,7 +7,8 @@ An interactive map of a home, office and cloud network: devices, zones, links
 
 Nuxt 4 · Nuxt UI 4 · Vue Flow · SQLite (`node:sqlite` from Node 24, no native modules).
 
-The interface is in Russian.
+The interface is in English or Russian: the EN / RU button in the top bar
+switches it, and the choice is remembered in the browser.
 
 ![The map with the demo network](docs/screenshot.png)
 
@@ -32,7 +33,7 @@ answer, yellow — some, red — none, grey — still checking. A “YGG” badg
 device means its Yggdrasil address is pinged.
 
 Tunnel links are animated, and on a big map that costs a lot of CPU. Menu “⋮” →
-“Анимация” (animation) stops all motion; links keep their dash patterns. It is off
+“Animation” stops all motion; links keep their dash patterns. It is off
 by default when the system asks for reduced motion.
 
 ## Services
@@ -62,9 +63,8 @@ tunnels, NetBird and Yggdrasil. The port is set with the `PORT` variable.
 
 ## Backup
 
-Menu “⋮” → “Скачать JSON” (download JSON) saves the whole map as one file;
-“Загрузить JSON…” (load JSON) replaces the current map with one. The same over the
-API:
+Menu “⋮” → “Download JSON” saves the whole map as one file; “Load JSON…”
+replaces the current map with one. The same over the API:
 
 ```bash
 curl -o network-map.json http://<host>:3080/api/export

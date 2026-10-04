@@ -1,5 +1,9 @@
 // Shared between the Nitro API and the Vue app (Nuxt auto-imports shared/types).
 
+// Interface language. English is the default, Russian is the other choice.
+export type Lang = 'en' | 'ru'
+export type Label = Record<Lang, string>
+
 export type ZoneKind = 'home' | 'office' | 'cloud' | 'mobile' | 'overlay' | 'other'
 
 export type DeviceType =

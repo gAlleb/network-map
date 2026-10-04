@@ -1,16 +1,17 @@
 <script setup lang="ts">
 const props = defineProps<{ id: number, size?: 'sm' | 'md' }>()
 const { health } = useNetwork()
+const { t, lang } = useLang()
 
 const h = computed(() => health(props.id))
 const title = computed(() => {
   const { state, rtt, up, total } = h.value
-  const ms = rtt != null ? ` · ${fmtRtt(rtt)}` : ''
+  const ms = rtt != null ? ` · ${fmtRtt(rtt, lang.value)}` : ''
   return {
-    up: `в сети${ms}`,
-    partial: `отвечают ${up} из ${total} адресов${ms}`,
-    down: 'не отвечает',
-    unknown: 'проверяется…',
+    up: `${t('online', 'в сети')}${ms}`,
+    partial: `${t(`${up} of ${total} addresses answer`, `отвечают ${up} из ${total} адресов`)}${ms}`,
+    down: t('not answering', 'не отвечает'),
+    unknown: t('checking…', 'проверяется…'),
     off: '',
   }[state]
 })

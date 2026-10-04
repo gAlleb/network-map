@@ -3,9 +3,10 @@ import { Handle, Position } from '@vue-flow/core'
 
 defineOptions({ inheritAttrs: false })
 
-// Compact card of the "Схема" view.
+// Compact card of the scheme view.
 const props = defineProps<{ id: string, data: { deviceId: number }, selected?: boolean }>()
 const { deviceById, health } = useNetwork()
+const { lang, L } = useLang()
 const device = computed(() => deviceById(props.data.deviceId))
 const addr = computed(() => (device.value ? primaryAddress(device.value) : undefined))
 const rtt = computed(() => health(props.data.deviceId).rtt)
@@ -25,8 +26,8 @@ const accent = computed(() => meshAccent(device.value) ?? '#71717a')
       </div>
       <div class="addr truncate">
         <template v-if="addr">{{ addr.value }}</template>
-        <span v-else class="opacity-60">{{ deviceTypes[device.type]?.label }}</span>
-        <span v-if="rtt != null" class="rtt">{{ fmtRtt(rtt) }}</span>
+        <span v-else class="opacity-60">{{ L(deviceTypes[device.type]?.label) }}</span>
+        <span v-if="rtt != null" class="rtt">{{ fmtRtt(rtt, lang) }}</span>
       </div>
     </div>
     <Handle type="source" :position="Position.Right" class="!opacity-0" :connectable="false" />

@@ -3,7 +3,7 @@ import { Handle, Position } from '@vue-flow/core'
 
 defineOptions({ inheritAttrs: false })
 
-// The illustrated node of the "Карта" view.
+// The illustrated node of the map view.
 const props = defineProps<{ id: string, data: { deviceId: number }, selected?: boolean }>()
 const { deviceById, health } = useNetwork()
 const device = computed(() => deviceById(props.data.deviceId))

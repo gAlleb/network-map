@@ -1,17 +1,18 @@
 <script setup lang="ts">
 // Links of one device, editable in place. Unlike the rest of the device form
 // every change here is saved immediately: links are their own rows, and a
-// half-edited link list waiting for "Сохранить" would be easy to lose.
+// half-edited link list waiting for "Save" would be easy to lose.
 const props = defineProps<{ deviceId: number }>()
 const net = useNetwork()
 const { links, devices, deviceById } = net
+const { lang, t } = useLang()
 
 const rows = computed(() => links.value
   .filter(l => l.source === props.deviceId || l.target === props.deviceId)
   .map(l => ({ link: l, other: deviceById(l.source === props.deviceId ? l.target : l.source) }))
   .filter(r => r.other))
 
-const linkItems = toItems(linkKinds)
+const linkItems = computed(() => toItems(linkKinds, lang.value))
 const otherDevices = computed(() => devices.value
   .filter(d => d.id !== props.deviceId)
   .map(d => ({ value: d.id, label: d.name, icon: deviceTypes[d.type]?.icon })))
@@ -51,23 +52,23 @@ async function add() {
         <span class="min-w-0 flex-1 truncate text-sm font-medium text-highlighted">{{ other!.name }}</span>
         <UButton
           icon="i-lucide-trash-2" size="xs" color="error" variant="ghost"
-          :label="confirming === l.id ? 'Точно?' : undefined" @click="remove(l)"
+          :label="confirming === l.id ? t('Sure?', 'Точно?') : undefined" @click="remove(l)"
         />
       </div>
       <div class="flex items-center gap-2">
         <USelect :model-value="l.kind" :items="linkItems" size="sm" class="w-40 shrink-0" @update:model-value="(k: any) => update(l, { kind: k })" />
-        <UInput v-model="labels[l.id]" placeholder="подпись на линии" size="sm" class="min-w-0 flex-1" @blur="saveLabel(l)" @keydown.enter.prevent="saveLabel(l)" />
+        <UInput v-model="labels[l.id]" :placeholder="t('label on the line', 'подпись на линии')" size="sm" class="min-w-0 flex-1" @blur="saveLabel(l)" @keydown.enter.prevent="saveLabel(l)" />
       </div>
     </div>
 
     <div class="space-y-1.5 rounded-xl border border-dashed border-default p-2">
-      <USelectMenu v-model="fresh.target" :items="otherDevices" value-key="value" placeholder="Связать с устройством…" size="sm" class="w-full" />
+      <USelectMenu v-model="fresh.target" :items="otherDevices" value-key="value" :placeholder="t('Link to a device…', 'Связать с устройством…')" size="sm" class="w-full" />
       <div class="flex items-center gap-2">
         <USelect v-model="fresh.kind" :items="linkItems" size="sm" class="w-40 shrink-0" />
-        <UInput v-model="fresh.label" placeholder="подпись" size="sm" class="min-w-0 flex-1" @keydown.enter.prevent="add" />
+        <UInput v-model="fresh.label" :placeholder="t('label', 'подпись')" size="sm" class="min-w-0 flex-1" @keydown.enter.prevent="add" />
         <UButton icon="i-lucide-plus" size="sm" :disabled="!fresh.target" @click="add" />
       </div>
     </div>
-    <p class="text-xs text-muted">Связи сохраняются сразу, без кнопки «Сохранить».</p>
+    <p class="text-xs text-muted">{{ t('Links are saved right away, no need to press “Save”.', 'Связи сохраняются сразу, без кнопки «Сохранить».') }}</p>
   </div>
 </template>
