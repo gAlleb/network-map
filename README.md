@@ -9,6 +9,8 @@ Nuxt 4 · Nuxt UI 4 · Vue Flow · SQLite (`node:sqlite` from Node 24, no native
 
 The interface is in Russian.
 
+![The map with the demo network](docs/screenshot.png)
+
 ## Two views
 
 - **Map.** Devices are drawn as pictures and can be moved around. A zone is dragged
@@ -28,6 +30,10 @@ longer wait for the answer). Change it in the device form or right in the panel 
 clicking the mark next to an address. The device dot: green — all pinged addresses
 answer, yellow — some, red — none, grey — still checking. A “YGG” badge under a
 device means its Yggdrasil address is pinged.
+
+Tunnel links are animated, and on a big map that costs a lot of CPU. Menu “⋮” →
+“Анимация” (animation) stops all motion; links keep their dash patterns. It is off
+by default when the system asks for reduced motion.
 
 ## Services
 

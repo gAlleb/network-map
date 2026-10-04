@@ -7,3 +7,8 @@
 
 html, body, #__nuxt { height: 100%; }
 body { background: var(--ui-bg-muted); -webkit-font-smoothing: antialiased; }
+
+/* Menu «⋮» → «Анимация» off: links keep their dashes, nothing moves. */
+.no-motion .link-edge path.vue-flow__edge-path,
+.no-motion .status-dot::after { animation: none !important; }
+.no-motion .link-edge .pulse { display: none; }

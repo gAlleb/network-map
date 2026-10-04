@@ -26,6 +26,10 @@ const mode = stored<Mode>('mode', 'map')
 const hiddenKinds = stored<LinkKind[]>('hiddenKinds', [])
 const showLabels = stored('showLabels', true)
 const showMinimap = stored('showMinimap', true)
+// Moving dashes, dots and status pulses repaint the whole edge layer every
+// frame; on a big map that is most of the page's CPU. Off by default when the
+// system asks for reduced motion.
+const animate = stored('animate', !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 
 // ── loading and polling ─────────────────────────────────────────────────
 let poll: ReturnType<typeof setInterval> | undefined
@@ -332,6 +336,7 @@ const linkItems = toItems(linkKinds)
 const menu = computed(() => [[
   { label: 'Подписи связей', icon: 'i-lucide-tag', type: 'checkbox' as const, checked: showLabels.value, onUpdateChecked: (v: boolean) => (showLabels.value = v) },
   { label: 'Мини-карта', icon: 'i-lucide-map', type: 'checkbox' as const, checked: showMinimap.value, onUpdateChecked: (v: boolean) => (showMinimap.value = v) },
+  { label: 'Анимация', icon: 'i-lucide-activity', type: 'checkbox' as const, checked: animate.value, onUpdateChecked: (v: boolean) => (animate.value = v) },
 ], [
   { label: 'Показать всё', icon: 'i-lucide-scan', onSelect: () => fitView({ padding: 0.12, duration: 500 }) },
   { label: 'Скачать JSON', icon: 'i-lucide-download', to: '/api/export', target: '_blank', external: true },
@@ -381,7 +386,7 @@ const usedKinds = computed(() => (Object.keys(linkKinds) as LinkKind[]).filter(k
 </script>
 
 <template>
-  <div class="relative h-dvh w-full overflow-hidden bg-(--ui-bg-muted)">
+  <div class="relative h-dvh w-full overflow-hidden bg-(--ui-bg-muted)" :class="{ 'no-motion': !animate }">
     <!-- ── top bar ──────────────────────────────────────────────── -->
     <header class="topbar">
       <div class="flex items-center gap-2.5 pr-2">
