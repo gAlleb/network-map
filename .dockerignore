@@ -1,0 +1,9 @@
+node_modules
+.nuxt
+.output
+.data
+data/*.db*
+.env
+.git
+Dockerfile
+docker-compose.yml

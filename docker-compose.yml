@@ -1,0 +1,17 @@
+services:
+  network-map:
+    build: .
+    image: network-map:latest
+    container_name: network-map
+    restart: unless-stopped
+    # Host networking so pings leave from the host itself and reach everything
+    # it reaches: the LAN, the office through the router tunnel, NetBird (wt0)
+    # and Yggdrasil (ygg0). From a bridge network NetBird and Yggdrasil
+    # addresses would depend on NAT and policies and show as down.
+    network_mode: host
+    cap_add:
+      - NET_RAW
+    environment:
+      PORT: ${PORT:-3080}
+    volumes:
+      - ./data:/data
