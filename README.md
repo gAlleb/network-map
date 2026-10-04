@@ -7,8 +7,8 @@ An interactive map of a home, office and cloud network: devices, zones, links
 
 Nuxt 4 · Nuxt UI 4 · Vue Flow · SQLite (`node:sqlite` from Node 24, no native modules).
 
-The interface is in English or Russian: the EN / RU button in the top bar
-switches it, and the choice is remembered in the browser.
+The interface is in English or Russian: pick it from the language menu in the
+top bar; the choice is remembered in the browser.
 
 ![The map with the demo network](docs/screenshot.png)
 

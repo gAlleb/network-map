@@ -1,185 +1,49 @@
 {
   "zones": [
-    { "id": 1, "name": "Дом", "kind": "home", "subnet": "192.168.10.0/24", "color": "emerald", "description": "Домашняя сеть: роутер, гипервизор, хранилище, умный дом.", "x": 0, "y": 420, "width": 880, "height": 620 },
-    { "id": 2, "name": "Офис", "kind": "office", "subnet": "10.20.0.0/24", "color": "sky", "description": "Небольшой офис, связан с домом туннелем WireGuard.", "x": 1100, "y": 420, "width": 520, "height": 440 },
-    { "id": 3, "name": "Облако", "kind": "cloud", "subnet": "", "color": "amber", "description": "Арендованный VPS.", "x": 1100, "y": -120, "width": 320, "height": 280 },
-    { "id": 4, "name": "В дороге", "kind": "mobile", "subnet": "", "color": "violet", "description": "Устройства, которые бывают где угодно и ходят домой через NetBird.", "x": 0, "y": -120, "width": 400, "height": 280 }
+    {"id": 1, "name": "Home", "kind": "home", "subnet": "192.168.10.0/24", "color": "emerald", "description": "Home network: router, hypervisor, storage, smart home.", "x": 0, "y": 420, "width": 880, "height": 620},
+    {"id": 2, "name": "Office", "kind": "office", "subnet": "10.20.0.0/24", "color": "sky", "description": "A small office, joined to home by a WireGuard tunnel.", "x": 1100, "y": 420, "width": 520, "height": 440},
+    {"id": 3, "name": "Cloud", "kind": "cloud", "subnet": "", "color": "amber", "description": "A rented VPS.", "x": 1100, "y": -120, "width": 320, "height": 280},
+    {"id": 4, "name": "On the road", "kind": "mobile", "subnet": "", "color": "violet", "description": "Devices that can be anywhere and reach home over NetBird or Yggdrasil.", "x": 0, "y": -120, "width": 400, "height": 280}
   ],
   "devices": [
-    {
-      "id": 1, "name": "Домашний роутер", "type": "router", "zoneId": 1, "x": 380, "y": 470,
-      "description": "Раздаёт Wi-Fi, держит туннель в офис, пробрасывает 443 на обратный прокси.",
-      "os": "OpenWrt",
-      "addresses": [
-        { "kind": "lan", "value": "192.168.10.1", "ping": 0 },
-        { "kind": "wireguard", "value": "10.99.0.2", "label": "туннель в офис", "ping": 0 },
-        { "kind": "public", "value": "203.0.113.10", "ping": 0 }
-      ],
-      "services": [{ "name": "LuCI", "url": "http://192.168.10.1", "localUrl": "https://router.home.example" }],
-      "notes": ""
-    },
-    {
-      "id": 2, "name": "Proxmox", "type": "hypervisor", "zoneId": 1, "x": 60, "y": 650,
-      "description": "Гипервизор: на нём крутятся виртуальные машины.",
-      "os": "Proxmox VE",
-      "addresses": [{ "kind": "lan", "value": "192.168.10.2", "ping": 0 }],
-      "services": [{ "name": "Proxmox VE", "url": "https://192.168.10.2:8006", "localUrl": "https://pve.home.example" }],
-      "notes": ""
-    },
-    {
-      "id": 3, "name": "NAS", "type": "nas", "zoneId": 1, "x": 380, "y": 650,
-      "description": "Хранилище: файлы, медиатека, резервные копии.",
-      "os": "TrueNAS",
-      "addresses": [{ "kind": "lan", "value": "192.168.10.5", "ping": 0 }],
-      "services": [
-        { "name": "TrueNAS", "url": "https://192.168.10.5", "localUrl": "https://nas.home.example" },
-        { "name": "SMB", "note": "общие папки" }
-      ],
-      "notes": ""
-    },
-    {
-      "id": 4, "name": "docker", "type": "vm", "zoneId": 1, "x": 60, "y": 860,
-      "description": "ВМ с контейнерами и сервером NetBird.",
-      "os": "Debian, Docker",
-      "addresses": [
-        { "kind": "lan", "value": "192.168.10.20", "ping": 0 },
-        { "kind": "netbird", "value": "100.90.0.1", "ping": 0 }
-      ],
-      "services": [
-        { "name": "Обратный прокси", "url": "http://192.168.10.20:81", "localUrl": "https://proxy.home.example" },
-        { "name": "Jellyfin", "url": "http://192.168.10.20:8096", "localUrl": "https://media.home.example" },
-        { "name": "Nextcloud", "localUrl": "https://cloud.home.example", "publicUrl": "https://cloud.example.com" },
-        { "name": "Карта сети", "url": "http://192.168.10.20:3080", "localUrl": "https://map.home.example" },
-        { "name": "NetBird", "note": "сервер и маршрутизатор подсети 192.168.10.0/24" }
-      ],
-      "notes": "Порт 443 с роутера приходит сюда, на обратный прокси."
-    },
-    {
-      "id": 5, "name": "Home Assistant", "type": "vm", "zoneId": 1, "x": 220, "y": 860,
-      "description": "Умный дом.",
-      "os": "Home Assistant OS",
-      "addresses": [{ "kind": "lan", "value": "192.168.10.21", "ping": 0 }],
-      "services": [{ "name": "Home Assistant", "url": "http://192.168.10.21:8123", "localUrl": "https://ha.home.example" }],
-      "notes": ""
-    },
-    {
-      "id": 6, "name": "Принтер", "type": "printer", "zoneId": 1, "x": 540, "y": 860,
-      "description": "",
-      "os": "",
-      "addresses": [{ "kind": "lan", "value": "192.168.10.30", "ping": 0 }],
-      "services": [],
-      "notes": ""
-    },
-    {
-      "id": 7, "name": "Телевизор", "type": "tv", "zoneId": 1, "x": 700, "y": 860,
-      "description": "Смотрит медиатеку с Jellyfin.",
-      "os": "Android TV",
-      "addresses": [{ "kind": "lan", "value": "192.168.10.40", "ping": 0 }],
-      "services": [],
-      "notes": ""
-    },
-    {
-      "id": 8, "name": "Офисный роутер", "type": "router", "zoneId": 2, "x": 1300, "y": 470,
-      "description": "Сервер туннеля WireGuard для дома.",
-      "os": "OpenWrt",
-      "addresses": [
-        { "kind": "lan", "value": "10.20.0.1", "ping": 0 },
-        { "kind": "wireguard", "value": "10.99.0.1", "label": "сервер туннеля", "ping": 0 },
-        { "kind": "public", "value": "198.51.100.20", "ping": 0 }
-      ],
-      "services": [{ "name": "LuCI", "url": "http://10.20.0.1" }],
-      "notes": ""
-    },
-    {
-      "id": 9, "name": "Рабочий ПК", "type": "desktop", "zoneId": 2, "x": 1140, "y": 690,
-      "description": "",
-      "os": "Windows 11",
-      "addresses": [{ "kind": "lan", "value": "10.20.0.15", "ping": 0 }],
-      "services": [{ "name": "RDP", "note": "только из туннеля" }],
-      "notes": ""
-    },
-    {
-      "id": 10, "name": "МФУ", "type": "printer", "zoneId": 2, "x": 1300, "y": 690,
-      "description": "Принтер и сканер.",
-      "os": "",
-      "addresses": [{ "kind": "lan", "value": "10.20.0.30", "ping": 0 }],
-      "services": [{ "name": "Веб-панель", "url": "http://10.20.0.30" }],
-      "notes": ""
-    },
-    {
-      "id": 11, "name": "Камера", "type": "camera", "zoneId": 2, "x": 1460, "y": 690,
-      "description": "",
-      "os": "",
-      "addresses": [{ "kind": "lan", "value": "10.20.0.40", "ping": 0 }],
-      "services": [],
-      "notes": ""
-    },
-    {
-      "id": 12, "name": "VPS", "type": "vps", "zoneId": 3, "x": 1180, "y": -60,
-      "description": "Сайт и почта.",
-      "os": "Ubuntu",
-      "addresses": [
-        { "kind": "public", "value": "203.0.113.50", "ping": 0 },
-        { "kind": "netbird", "value": "100.90.0.10", "ping": 0 },
-        { "kind": "dns", "value": "example.com", "ping": 0 }
-      ],
-      "services": [
-        { "name": "Сайт", "publicUrl": "https://example.com" },
-        { "name": "Почта", "note": "SMTP, IMAP" }
-      ],
-      "notes": ""
-    },
-    {
-      "id": 13, "name": "Ноутбук", "type": "laptop", "zoneId": 4, "x": 40, "y": -60,
-      "description": "",
-      "os": "Linux",
-      "addresses": [{ "kind": "netbird", "value": "100.90.0.20", "ping": 0 }],
-      "services": [],
-      "notes": "Дома ходит через Wi-Fi, вне дома — через NetBird."
-    },
-    {
-      "id": 14, "name": "Телефон", "type": "phone", "zoneId": 4, "x": 210, "y": -60,
-      "description": "",
-      "os": "Android",
-      "addresses": [{ "kind": "netbird", "value": "100.90.0.21", "ping": 0 }],
-      "services": [],
-      "notes": ""
-    },
-    {
-      "id": 15, "name": "NetBird", "type": "mesh", "zoneId": null, "x": 620, "y": 200,
-      "description": "Меш-сеть: связывает дом, VPS и устройства в дороге.",
-      "os": "",
-      "addresses": [{ "kind": "other", "value": "100.90.0.0/16", "label": "адреса", "ping": 0 }],
-      "services": [],
-      "notes": ""
-    },
-    {
-      "id": 16, "name": "Интернет", "type": "internet", "zoneId": null, "x": 900, "y": 20,
-      "description": "",
-      "os": "",
-      "addresses": [],
-      "services": [],
-      "notes": ""
-    }
+    {"id": 1, "name": "Home router", "type": "router", "zoneId": 1, "x": 380, "y": 470, "description": "Wi-Fi, the tunnel to the office, port 443 forwarded to the reverse proxy.", "os": "OpenWrt", "addresses": [{"kind": "lan", "value": "192.168.10.1", "ping": 0}, {"kind": "wireguard", "value": "10.99.0.2", "label": "tunnel to the office", "ping": 0}, {"kind": "public", "value": "203.0.113.10", "ping": 0}], "services": [{"name": "LuCI", "url": "http://192.168.10.1", "localUrl": "https://router.home.example"}], "notes": ""},
+    {"id": 2, "name": "Proxmox", "type": "hypervisor", "zoneId": 1, "x": 60, "y": 650, "description": "Hypervisor: runs the virtual machines.", "os": "Proxmox VE", "addresses": [{"kind": "lan", "value": "192.168.10.2", "ping": 0}], "services": [{"name": "Proxmox VE", "url": "https://192.168.10.2:8006", "localUrl": "https://pve.home.example"}], "notes": ""},
+    {"id": 3, "name": "NAS", "type": "nas", "zoneId": 1, "x": 380, "y": 650, "description": "Storage: files, media library, backups.", "os": "TrueNAS", "addresses": [{"kind": "lan", "value": "192.168.10.5", "ping": 0}], "services": [{"name": "TrueNAS", "url": "https://192.168.10.5", "localUrl": "https://nas.home.example"}, {"name": "SMB", "note": "shared folders"}], "notes": ""},
+    {"id": 4, "name": "docker", "type": "vm", "zoneId": 1, "x": 60, "y": 860, "description": "VM with containers and the NetBird server.", "os": "Debian, Docker", "addresses": [{"kind": "lan", "value": "192.168.10.20", "ping": 0}, {"kind": "netbird", "value": "100.90.0.1", "ping": 0}, {"kind": "yggdrasil", "value": "201:dead:beef:1234:5678:9abc:def0:1111", "ping": 0}], "services": [{"name": "Reverse proxy", "url": "http://192.168.10.20:81", "localUrl": "https://proxy.home.example"}, {"name": "Jellyfin", "url": "http://192.168.10.20:8096", "localUrl": "https://media.home.example"}, {"name": "Nextcloud", "localUrl": "https://cloud.home.example", "publicUrl": "https://cloud.example.com"}, {"name": "Network map", "url": "http://192.168.10.20:3080", "localUrl": "https://map.home.example"}, {"name": "NetBird", "note": "server and router for the 192.168.10.0/24 subnet"}], "notes": "Port 443 from the router lands here, on the reverse proxy."},
+    {"id": 5, "name": "Home Assistant", "type": "vm", "zoneId": 1, "x": 220, "y": 860, "description": "Smart home.", "os": "Home Assistant OS", "addresses": [{"kind": "lan", "value": "192.168.10.21", "ping": 0}], "services": [{"name": "Home Assistant", "url": "http://192.168.10.21:8123", "localUrl": "https://ha.home.example"}], "notes": ""},
+    {"id": 6, "name": "Printer", "type": "printer", "zoneId": 1, "x": 540, "y": 860, "description": "", "os": "", "addresses": [{"kind": "lan", "value": "192.168.10.30", "ping": 0}], "services": [], "notes": ""},
+    {"id": 7, "name": "TV", "type": "tv", "zoneId": 1, "x": 700, "y": 860, "description": "Plays the Jellyfin library.", "os": "Android TV", "addresses": [{"kind": "lan", "value": "192.168.10.40", "ping": 0}], "services": [], "notes": ""},
+    {"id": 8, "name": "Office router", "type": "router", "zoneId": 2, "x": 1300, "y": 470, "description": "WireGuard tunnel server for home.", "os": "OpenWrt", "addresses": [{"kind": "lan", "value": "10.20.0.1", "ping": 0}, {"kind": "wireguard", "value": "10.99.0.1", "label": "tunnel server", "ping": 0}, {"kind": "public", "value": "198.51.100.20", "ping": 0}], "services": [{"name": "LuCI", "url": "http://10.20.0.1"}], "notes": ""},
+    {"id": 9, "name": "Workstation", "type": "desktop", "zoneId": 2, "x": 1140, "y": 690, "description": "", "os": "Windows 11", "addresses": [{"kind": "lan", "value": "10.20.0.15", "ping": 0}], "services": [{"name": "RDP", "note": "only from the tunnel"}], "notes": ""},
+    {"id": 10, "name": "MFP", "type": "printer", "zoneId": 2, "x": 1300, "y": 690, "description": "Printer and scanner.", "os": "", "addresses": [{"kind": "lan", "value": "10.20.0.30", "ping": 0}], "services": [{"name": "Web panel", "url": "http://10.20.0.30"}], "notes": ""},
+    {"id": 11, "name": "Camera", "type": "camera", "zoneId": 2, "x": 1460, "y": 690, "description": "", "os": "", "addresses": [{"kind": "lan", "value": "10.20.0.40", "ping": 0}], "services": [], "notes": ""},
+    {"id": 12, "name": "VPS", "type": "vps", "zoneId": 3, "x": 1180, "y": -60, "description": "Website and mail.", "os": "Ubuntu", "addresses": [{"kind": "public", "value": "203.0.113.50", "ping": 0}, {"kind": "netbird", "value": "100.90.0.10", "ping": 0}, {"kind": "dns", "value": "example.com", "ping": 0}], "services": [{"name": "Website", "publicUrl": "https://example.com"}, {"name": "Mail", "note": "SMTP, IMAP"}], "notes": ""},
+    {"id": 13, "name": "Laptop", "type": "laptop", "zoneId": 4, "x": 40, "y": -60, "description": "", "os": "Linux", "addresses": [{"kind": "netbird", "value": "100.90.0.20", "ping": 0}, {"kind": "yggdrasil", "value": "200:1a2b:3c4d:5e6f:7a8b:9c0d:e1f2:3a4b", "ping": 0}], "services": [], "notes": "At home it uses Wi-Fi; away it comes home over NetBird or Yggdrasil."},
+    {"id": 14, "name": "Phone", "type": "phone", "zoneId": 4, "x": 210, "y": -60, "description": "", "os": "Android", "addresses": [{"kind": "netbird", "value": "100.90.0.21", "ping": 0}], "services": [], "notes": ""},
+    {"id": 15, "name": "NetBird", "type": "mesh", "zoneId": null, "x": 620, "y": 200, "description": "Mesh network: joins home, the VPS and devices on the road.", "os": "", "addresses": [{"kind": "other", "value": "100.90.0.0/16", "label": "addresses", "ping": 0}], "services": [], "notes": ""},
+    {"id": 16, "name": "Internet", "type": "internet", "zoneId": null, "x": 900, "y": 20, "description": "", "os": "", "addresses": [], "services": [], "notes": ""},
+    {"id": 17, "name": "Yggdrasil", "type": "mesh", "zoneId": null, "x": -200, "y": 300, "description": "Overlay IPv6 network 200::/7: a second way home that needs no server of its own.", "os": "", "addresses": [{"kind": "other", "value": "200::/7", "label": "addresses", "ping": 0}], "services": [], "notes": ""}
   ],
   "links": [
-    { "id": 1, "source": 2, "target": 1, "kind": "lan", "label": "", "notes": "" },
-    { "id": 2, "source": 3, "target": 1, "kind": "lan", "label": "", "notes": "" },
-    { "id": 3, "source": 4, "target": 2, "kind": "hosted", "label": "ВМ 100", "notes": "" },
-    { "id": 4, "source": 5, "target": 2, "kind": "hosted", "label": "ВМ 101", "notes": "" },
-    { "id": 5, "source": 6, "target": 1, "kind": "wifi", "label": "", "notes": "" },
-    { "id": 6, "source": 7, "target": 1, "kind": "wifi", "label": "", "notes": "" },
-    { "id": 7, "source": 9, "target": 8, "kind": "lan", "label": "", "notes": "" },
-    { "id": 8, "source": 10, "target": 8, "kind": "lan", "label": "", "notes": "" },
-    { "id": 9, "source": 11, "target": 8, "kind": "lan", "label": "", "notes": "" },
-    { "id": 10, "source": 1, "target": 8, "kind": "wireguard", "label": "10.99.0.0/24", "notes": "Офис — сервер, дом — клиент. Обе подсети видят друг друга." },
-    { "id": 11, "source": 1, "target": 16, "kind": "internet", "label": "", "notes": "" },
-    { "id": 12, "source": 8, "target": 16, "kind": "internet", "label": "", "notes": "" },
-    { "id": 13, "source": 12, "target": 16, "kind": "internet", "label": "", "notes": "" },
-    { "id": 14, "source": 4, "target": 15, "kind": "netbird", "label": "сервер", "notes": "" },
-    { "id": 15, "source": 12, "target": 15, "kind": "netbird", "label": "", "notes": "" },
-    { "id": 16, "source": 13, "target": 15, "kind": "netbird", "label": "", "notes": "" },
-    { "id": 17, "source": 14, "target": 15, "kind": "netbird", "label": "", "notes": "" },
-    { "id": 18, "source": 13, "target": 1, "kind": "wifi", "label": "дома", "notes": "" }
+    {"id": 1, "source": 2, "target": 1, "kind": "lan", "label": "", "notes": ""},
+    {"id": 2, "source": 3, "target": 1, "kind": "lan", "label": "", "notes": ""},
+    {"id": 3, "source": 4, "target": 2, "kind": "hosted", "label": "VM 100", "notes": ""},
+    {"id": 4, "source": 5, "target": 2, "kind": "hosted", "label": "VM 101", "notes": ""},
+    {"id": 5, "source": 6, "target": 1, "kind": "wifi", "label": "", "notes": ""},
+    {"id": 6, "source": 7, "target": 1, "kind": "wifi", "label": "", "notes": ""},
+    {"id": 7, "source": 9, "target": 8, "kind": "lan", "label": "", "notes": ""},
+    {"id": 8, "source": 10, "target": 8, "kind": "lan", "label": "", "notes": ""},
+    {"id": 9, "source": 11, "target": 8, "kind": "lan", "label": "", "notes": ""},
+    {"id": 10, "source": 1, "target": 8, "kind": "wireguard", "label": "10.99.0.0/24", "notes": "The office is the server, home the client. Both subnets see each other."},
+    {"id": 11, "source": 1, "target": 16, "kind": "internet", "label": "", "notes": ""},
+    {"id": 12, "source": 8, "target": 16, "kind": "internet", "label": "", "notes": ""},
+    {"id": 13, "source": 12, "target": 16, "kind": "internet", "label": "", "notes": ""},
+    {"id": 14, "source": 4, "target": 15, "kind": "netbird", "label": "server", "notes": ""},
+    {"id": 15, "source": 12, "target": 15, "kind": "netbird", "label": "", "notes": ""},
+    {"id": 16, "source": 13, "target": 15, "kind": "netbird", "label": "", "notes": ""},
+    {"id": 17, "source": 14, "target": 15, "kind": "netbird", "label": "", "notes": ""},
+    {"id": 18, "source": 13, "target": 1, "kind": "wifi", "label": "at home", "notes": ""},
+    {"id": 19, "source": 13, "target": 17, "kind": "yggdrasil", "label": "", "notes": ""},
+    {"id": 20, "source": 4, "target": 17, "kind": "yggdrasil", "label": "", "notes": ""}
   ]
 }

@@ -345,6 +345,11 @@ const menu = computed(() => [[
   { label: t('Load JSON…', 'Загрузить JSON…'), icon: 'i-lucide-upload', onSelect: () => importInput.value?.click() },
 ]])
 
+// The current language is the one ticked; the button shows its code.
+const langMenu = computed(() => [([['en', 'English'], ['ru', 'Русский']] as const).map(([l, label]) => ({
+  label, type: 'checkbox' as const, checked: lang.value === l, onUpdateChecked: () => setLang(l),
+}))])
+
 // ── restore from a backup ───────────────────────────────────────────────
 const importInput = ref<HTMLInputElement>()
 const importModal = reactive({ open: false, name: '', data: null as NetworkData | null, busy: false })
@@ -433,11 +438,9 @@ const usedKinds = computed(() => (Object.keys(linkKinds) as LinkKind[]).filter(k
         <UDropdownMenu :items="menu" :content="{ align: 'end' }">
           <UButton icon="i-lucide-ellipsis-vertical" color="neutral" variant="ghost" />
         </UDropdownMenu>
-        <UButton
-          :label="lang === 'ru' ? 'EN' : 'RU'" :title="t('Русский', 'English')"
-          color="neutral" variant="ghost" class="font-semibold"
-          @click="setLang(lang === 'ru' ? 'en' : 'ru')"
-        />
+        <UDropdownMenu :items="langMenu" :content="{ align: 'end' }">
+          <UButton icon="i-lucide-languages" :label="lang.toUpperCase()" :title="t('Interface language', 'Язык интерфейса')" color="neutral" variant="ghost" />
+        </UDropdownMenu>
         <UButton
           :icon="colorMode.value === 'dark' ? 'i-lucide-moon' : 'i-lucide-sun'"
           color="neutral" variant="ghost"
